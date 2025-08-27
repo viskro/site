@@ -50,9 +50,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l-1 12H6L5 9z"/>
                         </svg>
                         <!-- Badge quantité -->
-                        <span id="cart-count" class="absolute -top-1 -right-1 bg-white text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium hidden">
-                        0
-                    </span>
+                        @if($cartCount > 0)
+                            <span id="cart-count" class="absolute -top-1 -right-1 bg-white text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                                {{ $cartCount }}
+                            </span>
+                        @else
+                            <span id="cart-count" class="absolute -top-1 -right-1 bg-white text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium hidden">
+                                0
+                            </span>
+                        @endif
                     </button>
                 </a>
 
@@ -74,3 +80,22 @@
     <!-- Menu Mobile -->
     <x-layout.mobile-menu />
 </header>
+
+<script>
+/**
+ * Met à jour le compteur du panier dans le header
+ * @param {number} count - Le nouveau nombre d'articles
+ */
+window.updateCartCount = function(count) {
+    const cartCountElement = document.getElementById('cart-count');
+    if (cartCountElement) {
+        cartCountElement.textContent = count;
+        
+        if (count > 0) {
+            cartCountElement.classList.remove('hidden');
+        } else {
+            cartCountElement.classList.add('hidden');
+        }
+    }
+};
+</script>
