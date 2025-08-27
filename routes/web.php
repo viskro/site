@@ -44,6 +44,9 @@ Route::prefix('cart')->name('cart.')->group(function () {
 Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
     Route::post('/process', [CheckoutController::class, 'store'])->name('process');
+    Route::get('/payment', [CheckoutController::class, 'payment'])->name('payment');
+    Route::post('/create-payment-intent', [CheckoutController::class, 'createPaymentIntent'])->name('create-payment-intent');
+    Route::post('/confirm-payment', [CheckoutController::class, 'confirmPayment'])->name('confirm-payment');
     Route::get('/success/{order}', [CheckoutController::class, 'success'])->name('success');
 });
 
