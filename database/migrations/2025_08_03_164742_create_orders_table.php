@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number')->unique();
-            $table->string('stripe_payment_intent_id')->unique();
+            $table->string('stripe_payment_intent_id')->nullable()->unique();
             $table->decimal('amount', 10, 2);
             $table->string('currency', 3)->default('eur');
             $table->string('status')->default('pending');

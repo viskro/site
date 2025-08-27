@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
-use Stripe\PaymentIntent;
 use Tests\TestCase;
 
 class CheckoutFlowTest extends TestCase
@@ -76,31 +74,14 @@ class CheckoutFlowTest extends TestCase
             'terms_accepted' => 'on',
         ];
 
-        $this->post(route('checkout.process'), $payload)
+        // Le processus de checkout créé maintenant directement la commande
+        $response = $this->post(route('checkout.process'), $payload)
             ->assertStatus(200)
             ->assertJson(['success' => true]);
-
-        // Mock Stripe PaymentIntent::create
-        $piCreateMock = (object) [
-            'id' => 'pi_test_123',
-            'client_secret' => 'cs_test_123',
-            'amount' => 1000,
-            'currency' => 'eur',
-        ];
-        Mockery::mock('alias:' . PaymentIntent::class)
-            ->shouldReceive('create')->andReturn($piCreateMock)
-            ->byDefault()
-            ->shouldReceive('retrieve')->andReturn((object) ['status' => 'succeeded', 'id' => 'pi_test_123']);
-
-        // Créer le PaymentIntent
-        $this->post(route('checkout.create-payment-intent'))
-            ->assertStatus(200)
-            ->assertJsonStructure(['clientSecret']);
-
-        // Confirmer le paiement
-        $this->post(route('checkout.confirm-payment'))
-            ->assertStatus(200)
-            ->assertJson(['success' => true]);
+        
+        // Vérifier que la redirection vers la page de succès est correcte
+        $responseData = $response->json();
+        $this->assertStringContains('checkout/success', $responseData['redirect']);
 
         // Vérifier que le stock a diminué
         $tag->refresh();

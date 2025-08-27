@@ -228,88 +228,11 @@
                         </div>
                     </div>
 
-                    <!-- Options de livraison -->
-                    <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-                        <h2 class="font-display font-bold text-xl text-white mb-6 flex items-center">
-                            <span class="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center text-sm font-bold mr-3">4</span>
-                            {{ __('Mode de livraison') }}
-                        </h2>
 
-                        <div class="space-y-4">
-                            <label class="flex items-center justify-between p-4 border border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition-colors"
-                                   :class="{ 'border-white bg-gray-700': formData.delivery_method === 'standard' }">
-                                <div class="flex items-center space-x-3">
-                                    <input x-model="formData.delivery_method" type="radio" value="standard" required
-                                           class="w-4 h-4 text-white bg-gray-700 border-gray-600 focus:ring-white focus:ring-2">
-                                    <div>
-                                        <div class="font-medium text-white">{{ __('Livraison standard') }}</div>
-                                        <div class="text-sm text-gray-400">{{ __('3-5 jours ouvrés') }}</div>
-                                    </div>
-                                </div>
-                                <span class="text-white font-semibold">
-                                    {{ $summary['shipping_cost'] > 0 ? number_format($summary['shipping_cost'], 2) . ' €' : 'Gratuite' }}
-                                </span>
-                            </label>
 
-                            <label class="flex items-center justify-between p-4 border border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition-colors"
-                                   :class="{ 'border-white bg-gray-700': formData.delivery_method === 'express' }">
-                                <div class="flex items-center space-x-3">
-                                    <input x-model="formData.delivery_method" type="radio" value="express"
-                                           class="w-4 h-4 text-white bg-gray-700 border-gray-600 focus:ring-white focus:ring-2">
-                                    <div>
-                                        <div class="font-medium text-white">{{ __('Livraison express') }}</div>
-                                        <div class="text-sm text-gray-400">{{ __('24-48h') }}</div>
-                                    </div>
-                                </div>
-                                <span class="text-white font-semibold">+ 9,99 €</span>
-                            </label>
-                        </div>
-                    </div>
 
-                    <!-- Méthode de paiement -->
-                    <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-                        <h2 class="font-display font-bold text-xl text-white mb-6 flex items-center">
-                            <span class="w-8 h-8 bg-white text-black rounded-full flex items-center justify-center text-sm font-bold mr-3">5</span>
-                            {{ __('Paiement') }}
-                        </h2>
 
-                        <div class="space-y-4">
-                            <label class="flex items-center justify-between p-4 border border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition-colors"
-                                   :class="{ 'border-white bg-gray-700': formData.payment_method === 'card' }">
-                                <div class="flex items-center space-x-3">
-                                    <input x-model="formData.payment_method" type="radio" value="card" required
-                                           class="w-4 h-4 text-white bg-gray-700 border-gray-600 focus:ring-white focus:ring-2">
-                                    <div class="flex items-center space-x-2">
-                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
-                                        </svg>
-                                        <span class="font-medium text-white">{{ __('Carte bancaire') }}</span>
-                                    </div>
-                                </div>
-                                <div class="flex space-x-1">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="Visa" class="h-6 w-auto">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-6 w-auto">
-                                </div>
-                            </label>
-
-                            <label class="flex items-center justify-between p-4 border border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition-colors"
-                                   :class="{ 'border-white bg-gray-700': formData.payment_method === 'paypal' }">
-                                <div class="flex items-center space-x-3">
-                                    <input x-model="formData.payment_method" type="radio" value="paypal"
-                                           class="w-4 h-4 text-white bg-gray-700 border-gray-600 focus:ring-white focus:ring-2">
-                                    <div class="flex items-center space-x-2">
-                                        <svg class="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"/>
-                                        </svg>
-                                        <span class="font-medium text-white">PayPal</span>
-                                    </div>
-                                </div>
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" class="h-6 w-auto">
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Conditions et newsletter -->
+                    <!-- Conditions générales -->
                     <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
                         <div class="space-y-4">
                             <label class="flex items-start space-x-3 cursor-pointer">
@@ -324,13 +247,7 @@
                                 </span>
                             </label>
 
-                            <label class="flex items-start space-x-3 cursor-pointer">
-                                <input x-model="formData.newsletter" type="checkbox"
-                                       class="w-4 h-4 text-white bg-gray-700 border-gray-600 rounded focus:ring-white focus:ring-2 mt-0.5">
-                                <span class="text-gray-300 text-sm">
-                                    {{ __('Je souhaite recevoir les offres spéciales et nouveautés Sound Tags par email') }}
-                                </span>
-                            </label>
+
                         </div>
                     </div>
                 </div>
@@ -375,12 +292,7 @@
                                 <span>{{ number_format($summary['subtotal'], 2) }} €</span>
                             </div>
 
-                            <div class="flex justify-between text-gray-400">
-                                <span>{{ __('Livraison') }}</span>
-                                <span x-text="shippingCostDisplay">
-                                    {{ $summary['shipping_cost'] > 0 ? number_format($summary['shipping_cost'], 2) . ' €' : 'Gratuite' }}
-                                </span>
-                            </div>
+
 
                             <div class="flex justify-between items-center pt-3 border-t border-gray-600">
                                 <span class="font-semibold text-white text-lg">{{ __('Total') }}</span>
@@ -467,24 +379,13 @@
                     billing_city: '',
                     billing_postal_code: '',
                     billing_country: 'France',
-                    delivery_method: 'standard',
-                    payment_method: 'card',
-                    terms_accepted: false,
-                    newsletter: false
-                },
 
-                get shippingCostDisplay() {
-                    if (this.formData.delivery_method === 'express') {
-                        return '14,98 €'; // 4.99 + 9.99
-                    }
-                    return '{{ $summary["shipping_cost"] > 0 ? number_format($summary["shipping_cost"], 2) . " €" : "Gratuite" }}';
+                    terms_accepted: false,
+
                 },
 
                 get totalDisplay() {
                     let total = {{ $summary['total'] }};
-                    if (this.formData.delivery_method === 'express') {
-                        total += 9.99;
-                    }
                     return new Intl.NumberFormat('fr-FR', {
                         style: 'currency',
                         currency: 'EUR'

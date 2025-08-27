@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
-use Stripe\Stripe;
-use Stripe\PaymentIntent;
+
 use App\Models\Product;
 use App\Models\Order;
 
@@ -101,143 +100,26 @@ class CheckoutController extends Controller
             'summary' => $summary,
         ];
 
-        Session::put('checkout_data', $orderData);
-
+        // Créer directement la commande sans passer par l'étape de paiement
+        $order = $this->createOrderDirect($orderData, $cartItems);
+        
+        // Réduire les stocks
+        $this->updateStock($cartItems);
+        
+        // Vider le panier et nettoyer la session
+        Session::forget(['cart', 'checkout_data']);
+        
         return response()->json([
             'success' => true,
-            'redirect' => route('checkout.payment')
+            'redirect' => route('checkout.success', ['order' => $order->order_number])
         ]);
     }
 
-    public function payment()
-    {
-        $checkoutData = Session::get('checkout_data');
-        $cartItems = $this->getCartItems();
 
-        if (!$checkoutData || $cartItems->isEmpty()) {
-            return redirect()->route('checkout.index')->with('error', 'Informations de commande manquantes.');
-        }
 
-        $summary = $this->getOrderSummary($cartItems);
 
-        return view('checkout.payment', compact('checkoutData', 'cartItems', 'summary'));
-    }
 
-    public function createPaymentIntent(Request $request)
-    {
-        try {
-            $stripeSecret = config('services.stripe.secret');
-            if (empty($stripeSecret)) {
-                Log::warning('Clé API Stripe manquante');
-                return response()->json(['error' => 'Paiement indisponible pour le moment'], 503);
-            }
-            Stripe::setApiKey($stripeSecret);
 
-            Log::info('Début création PaymentIntent');
-
-            $checkoutData = Session::get('checkout_data');
-            $cartItems = $this->getCartItems();
-
-            if (!$checkoutData || $cartItems->isEmpty()) {
-                Log::warning('Données manquantes pour PaymentIntent');
-                return response()->json(['error' => 'Données de commande manquantes'], 400);
-            }
-
-            $summary = $this->getOrderSummary($cartItems);
-            Log::info('Résumé de commande calculé', [
-                'subtotal' => $summary['subtotal'],
-                'total' => $summary['total'],
-                'items_count' => $summary['items_count'],
-            ]);
-
-            // Créer la description avec les noms des produits
-            $productNames = $cartItems->map(function ($item) {
-                $description = $item['quantity'] . 'x ' . $item['product']['name'];
-
-                // Si c'est un pack, ajouter les sound tags sélectionnés
-                if ($item['product_type'] === 'pack' && isset($item['selected_tags_details'])) {
-                    $selectedTags = collect($item['selected_tags_details'])->pluck('name')->join(', ');
-                    $description .= ' (' . $selectedTags . ')';
-                }
-
-                return $description;
-            })->join(', ');
-
-            Log::info('Description des produits créée', ['product_names' => $productNames]);
-
-            // Créer le PaymentIntent
-            $paymentIntent = PaymentIntent::create([
-                'amount' => round($summary['total'] * 100), // Montant en centimes
-                'currency' => 'eur',
-                'metadata' => [
-                    'customer_email' => $checkoutData['customer']['email'],
-                    'customer_name' => $checkoutData['customer']['first_name'] . ' ' . $checkoutData['customer']['last_name'],
-                    'items_count' => $cartItems->sum('quantity'),
-                ],
-                'description' => 'Commande Sound Tags - ' . $productNames,
-            ]);
-
-            Log::info('PaymentIntent créé avec succès', [
-                'payment_intent_id' => $paymentIntent->id,
-                'amount' => $paymentIntent->amount,
-                'currency' => $paymentIntent->currency
-            ]);
-
-            // Stocker le PaymentIntent ID en session
-            Session::put('payment_intent_id', $paymentIntent->id);
-
-            return response()->json([
-                'clientSecret' => $paymentIntent->client_secret
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Erreur création PaymentIntent: ' . $e->getMessage());
-            return response()->json(['error' => 'Erreur lors de la création du paiement: ' . $e->getMessage()], 500);
-        }
-    }
-
-    public function confirmPayment(Request $request)
-    {
-        try {
-            $stripeSecret = config('services.stripe.secret');
-            if (empty($stripeSecret)) {
-                Log::warning('Clé API Stripe manquante');
-                return response()->json(['error' => 'Paiement indisponible pour le moment'], 503);
-            }
-            Stripe::setApiKey($stripeSecret);
-
-            $paymentIntentId = Session::get('payment_intent_id');
-            $checkoutData = Session::get('checkout_data');
-            $cartItems = $this->getCartItems();
-
-            if (!$paymentIntentId || !$checkoutData || $cartItems->isEmpty()) {
-                return response()->json(['error' => 'Données manquantes'], 400);
-            }
-
-            // Récupérer le PaymentIntent depuis Stripe
-            $paymentIntent = PaymentIntent::retrieve($paymentIntentId);
-
-            if ($paymentIntent->status === 'succeeded') {
-                // Créer la commande
-                $order = $this->createOrder($paymentIntent, $checkoutData, $cartItems);
-
-                // Réduire les stocks
-                $this->updateStock($cartItems);
-
-                // Vider le panier et nettoyer la session
-                Session::forget(['cart', 'checkout_data', 'payment_intent_id']);
-
-                return response()->json([
-                    'success' => true,
-                    'redirect' => route('checkout.success', ['order' => $order->order_number])
-                ]);
-            }
-
-            return response()->json(['error' => 'Paiement non confirmé'], 400);
-        } catch (\Exception $e) {
-            Log::error('Erreur confirmation paiement: ' . $e->getMessage());
-            return response()->json(['error' => 'Erreur lors de la confirmation'], 500);
-        }
-    }
 
     public function success($orderNumber)
     {
@@ -309,20 +191,20 @@ class CheckoutController extends Controller
         ];
     }
 
-    private function createOrder($paymentIntent, $checkoutData, $cartItems)
+    private function createOrderDirect($orderData, $cartItems)
     {
         $summary = $this->getOrderSummary($cartItems);
 
         return Order::create([
             'order_number' => $this->generateOrderNumber(),
-            'stripe_payment_intent_id' => $paymentIntent->id,
+            'stripe_payment_intent_id' => null, // Pas de Stripe dans ce cas
             'amount' => $summary['total'],
             'currency' => 'eur',
             'status' => 'completed',
-            'customer_email' => $checkoutData['customer']['email'],
-            'customer_data' => json_encode($checkoutData['customer']),
-            'shipping_address' => json_encode($checkoutData['shipping_address']),
-            'billing_address' => json_encode($checkoutData['billing_address']),
+            'customer_email' => $orderData['customer']['email'],
+            'customer_data' => json_encode($orderData['customer']),
+            'shipping_address' => json_encode($orderData['shipping_address']),
+            'billing_address' => json_encode($orderData['billing_address']),
             'cart_data' => json_encode($cartItems->toArray()),
             'summary_data' => json_encode($summary),
         ]);
