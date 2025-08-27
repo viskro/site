@@ -230,7 +230,7 @@
             if (newQuantity < 1) return;
 
             fetch(`/cart/update/${itemId}`, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
