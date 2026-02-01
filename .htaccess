@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 1. Redirige tout le trafic vers le dossier public
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Gardez votre configuration PHP spécifique à LWS en bas
+<IfFile /var/www/soundtags.fr/php8.4.socket>
+    AddHandler "proxy:unix:/var/www/soundtags.fr/php8.4.socket|fcgi://127.0.0.1:9000/" .php
+</IfFile>
+
